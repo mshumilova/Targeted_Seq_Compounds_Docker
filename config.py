@@ -1,14 +1,13 @@
 config = {}
 
-parent_dir = '/Users/mariashumilova/Documents/bioinf/my_projects/fin_pd/project_compound'
-plink_dir = '/Users/mariashumilova/Documents/bioinf/tools/plink_mac/'
-input_dir = '/Users/mariashumilova/Documents/bioinf/my_projects/fin_pd/data'
-selected_files = None
-genome_assembly = 37 # or 37
+# Please indicate paths
+parent_dir = '' # path to the project directory
+input_dir = '' # path to .vcf or .bed files you want to analyse
+selected_files = None # None by default. Or list [] of file names of .vcf or .bed files in input_dir
+genome_assembly = 37 # 37 or 38
 
-
+#______________________________________________________________________
 config['parent_dir'] = parent_dir
-config['plink_dir'] = plink_dir
 config['input_dir'] = input_dir
 config['selected_files'] = selected_files
 config['genome_assembly'] = genome_assembly

@@ -1,13 +1,16 @@
-from config import config
 import os
 import wget
 import shutil
 import re
 import pandas as pd
+from importlib.machinery import SourceFileLoader
 
-parent_dir = config['parent_dir']
-input_directory = config['input_dir']
-selected_files = config['selected_files']
+# load the config.py module from the mounted volume
+config = SourceFileLoader("config", "app/config/config.py").load_module()
+
+parent_dir = config.config['parent_dir']
+input_directory = config.config['input_dir']
+selected_files = config.config['selected_files']
 
 vep = 'vep'
 plugins = 'Plugins'
@@ -24,8 +27,6 @@ compound = 'compound'
 
 ref = 'ref'
 
-plink_directory = config['plink_dir']
-
 vep_dir = os.path.join(parent_dir, vep)
 plugins_dir = os.path.join(vep_dir, plugins)
 homo_sapiens_dir = os.path.join(vep_dir, homo_sapiens)
@@ -41,7 +42,7 @@ out_compound_path = os.path.join(data_dir, compound)
 
 ref_dir = os.path.join(parent_dir, ref)
 
-assembly = config['genome_assembly']
+assembly = config.config['genome_assembly']
 if assembly == 37:
     from hg37 import hg
 if assembly == 38:
@@ -209,7 +210,7 @@ def bed_to_vcf():
         elif file_extension.startswith('.bed'): # convert .bed to .vcf and save to working directory
             input_file = os.path.splitext(file_path)[0]
             vcf_file = os.path.join(inp_dir, os.path.basename(file_path).split('.')[0])
-            cmd = f"sudo {plink_directory}plink \
+            cmd = f"sudo plink \
                     --bfile {input_file} \
                     --recode vcf \
                     --out {vcf_file}"
