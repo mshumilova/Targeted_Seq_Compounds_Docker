@@ -15,7 +15,10 @@ RUN ln -s /app/plink/plink /usr/local/bin/plink
 WORKDIR /app
 
 #Copy application files
-COPY code.py hg37.py hg38.py main.py /app/
+COPY code.py hg37.py hg38.py main.py config.py /app/
+
+#Define the volume
+#VOLUME ["/config"]
 
 #Run the main script
 CMD ["python3", "main.py"]

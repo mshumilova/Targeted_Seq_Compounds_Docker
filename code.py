@@ -3,62 +3,63 @@ import wget
 import shutil
 import re
 import pandas as pd
-from importlib.machinery import SourceFileLoader
 
-# load the config.py module from the mounted volume
-config = SourceFileLoader("config", "app/config/config.py").load_module()
+config_path = os.environ.get('CONFIG_PATH', '/app/config.py')
+if os.path.isfile(config_path):
+    from config import config
 
-parent_dir = config.config['parent_dir']
-input_directory = config.config['input_dir']
-selected_files = config.config['selected_files']
+    parent_dir = config['parent_dir']
+    input_directory = config['input_dir']
+    selected_files = config['selected_files']
 
-vep = 'vep'
-plugins = 'Plugins'
-cadd = 'cadd'
-gnomad = 'gnomAD'
-clinvar = 'clinvar'
-homo_sapiens = 'homo_sapiens'
+    vep = 'vep'
+    plugins = 'Plugins'
+    cadd = 'cadd'
+    gnomad = 'gnomAD'
+    clinvar = 'clinvar'
+    homo_sapiens = 'homo_sapiens'
 
-data = 'data'
-inp = 'inp_vcf'
-annotated_vcf = 'annotated_vcf'
-out = 'out_csv'
-compound = 'compound'
+    data = 'data'
+    inp = 'inp_vcf'
+    annotated_vcf = 'annotated_vcf'
+    out = 'out_csv'
+    compound = 'compound'
 
-ref = 'ref'
+    ref = 'ref'
 
-vep_dir = os.path.join(parent_dir, vep)
-plugins_dir = os.path.join(vep_dir, plugins)
-homo_sapiens_dir = os.path.join(vep_dir, homo_sapiens)
-cadd_dir = os.path.join(plugins_dir, cadd)
-gnomad_dir = os.path.join(plugins_dir, gnomad)
-clinvar_dir = os.path.join(plugins_dir, clinvar)
+    vep_dir = os.path.join(parent_dir, vep)
+    plugins_dir = os.path.join(vep_dir, plugins)
+    homo_sapiens_dir = os.path.join(vep_dir, homo_sapiens)
+    cadd_dir = os.path.join(plugins_dir, cadd)
+    gnomad_dir = os.path.join(plugins_dir, gnomad)
+    clinvar_dir = os.path.join(plugins_dir, clinvar)
 
-data_dir = os.path.join(parent_dir, data)
-inp_dir = os.path.join(data_dir, inp)
-annotated_vcf_dir = os.path.join(data_dir, annotated_vcf)
-out_dir = os.path.join(data_dir, out)
-out_compound_path = os.path.join(data_dir, compound)
+    data_dir = os.path.join(parent_dir, data)
+    inp_dir = os.path.join(data_dir, inp)
+    annotated_vcf_dir = os.path.join(data_dir, annotated_vcf)
+    out_dir = os.path.join(data_dir, out)
+    out_compound_path = os.path.join(data_dir, compound)
 
-ref_dir = os.path.join(parent_dir, ref)
+    ref_dir = os.path.join(parent_dir, ref)
 
-assembly = config.config['genome_assembly']
-if assembly == 37:
-    from hg37 import hg
-if assembly == 38:
-    from hg38 import hg
-url_ref = hg['ref_genome_url']
-ref_name_gz = hg['ref_name_gz']
-url_gnomad_exomes_gz = hg['url_gnomad_exomes_gz']
-url_gnomad_exomes_tbi = hg['url_gnomad_exomes_tbi']
-url_gnomad_genomes_gz = hg['url_gnomad_genomes_gz']
-url_gnomad_genomes_tbi = hg['url_gnomad_genomes_tbi']
-url_cadd_whole_genome_gz = hg['url_cadd_whole_genome_gz']
-url_cadd_whole_genome_tbi = hg['url_cadd_whole_genome_tbi']
-url_clinvar_gz = hg['url_clinvar_gz']
-url_clinvar_tbi = hg['url_clinvar_tbi']
-url_homo_sapiens_gz = hg['url_homo_sapiens_gz']
-
+    assembly = config['genome_assembly']
+    if assembly == 37:
+        from hg37 import hg
+    if assembly == 38:
+        from hg38 import hg
+    url_ref = hg['ref_genome_url']
+    ref_name_gz = hg['ref_name_gz']
+    url_gnomad_exomes_gz = hg['url_gnomad_exomes_gz']
+    url_gnomad_exomes_tbi = hg['url_gnomad_exomes_tbi']
+    url_gnomad_genomes_gz = hg['url_gnomad_genomes_gz']
+    url_gnomad_genomes_tbi = hg['url_gnomad_genomes_tbi']
+    url_cadd_whole_genome_gz = hg['url_cadd_whole_genome_gz']
+    url_cadd_whole_genome_tbi = hg['url_cadd_whole_genome_tbi']
+    url_clinvar_gz = hg['url_clinvar_gz']
+    url_clinvar_tbi = hg['url_clinvar_tbi']
+    url_homo_sapiens_gz = hg['url_homo_sapiens_gz']
+else:
+    print("Config file not found")
 delimiter = '\t'
 
 # 0 Docker Run Images
