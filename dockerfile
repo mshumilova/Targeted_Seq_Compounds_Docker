@@ -1,7 +1,10 @@
 FROM python:3.11.3
 
 #Install required packages
-RUN pip install pandas docker wget
+RUN pip install pandas wget
+
+#Install Docker inside the container
+RUN apt-get update && apt-get install -y docker.io
 
 #Install plink
 RUN mkdir -p /app/plink
@@ -15,10 +18,11 @@ RUN ln -s /app/plink/plink /usr/local/bin/plink
 WORKDIR /app
 
 #Copy application files
-COPY code.py hg37.py hg38.py main.py config.py /app/
+COPY code.py hg37.py hg38.py main.py /app/
 
 #Define the volume
-#VOLUME ["/config"]
+VOLUME ["/parent_dir"]
+VOLUME ["/input_dir"]
 
 #Run the main script
 CMD ["python3", "main.py"]

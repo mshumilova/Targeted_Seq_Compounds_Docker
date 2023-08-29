@@ -6,6 +6,7 @@ from code import bed_to_vcf
 from code import vep_annotation
 from code import vcf_to_csv
 from code import compound
+from code import check_docker_availability
 
 #docker_pull()
 #_______checking if there is an empty folder or not
@@ -17,3 +18,4 @@ bed_to_vcf()
 vep_annotation()
 vcf_to_csv()
 compound()
+check_docker_availability()

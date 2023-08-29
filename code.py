@@ -4,62 +4,61 @@ import shutil
 import re
 import pandas as pd
 
-config_path = os.environ.get('CONFIG_PATH', '/app/config.py')
-if os.path.isfile(config_path):
-    from config import config
 
-    parent_dir = config['parent_dir']
-    input_directory = config['input_dir']
-    selected_files = config['selected_files']
+parent_dir = os.environ.get('PARENT_DIR')
+input_directory = os.environ.get('INPUT_DIR')
+selected_files = None #os.environ.get('SELECTED_FILES')
+assembly = 37 #os.environ.get("ASSEMBLY")
 
-    vep = 'vep'
-    plugins = 'Plugins'
-    cadd = 'cadd'
-    gnomad = 'gnomAD'
-    clinvar = 'clinvar'
-    homo_sapiens = 'homo_sapiens'
+if parent_dir is None or input_directory is None:
+    raise ValueError("PARENT_DIR and INPUT_DIR environment variable must be set")
 
-    data = 'data'
-    inp = 'inp_vcf'
-    annotated_vcf = 'annotated_vcf'
-    out = 'out_csv'
-    compound = 'compound'
+vep = 'vep'
+plugins = 'Plugins'
+cadd = 'cadd'
+gnomad = 'gnomAD'
+clinvar = 'clinvar'
+homo_sapiens = 'homo_sapiens'
 
-    ref = 'ref'
+data = 'data'
+inp = 'inp_vcf'
+annotated_vcf = 'annotated_vcf'
+out = 'out_csv'
+compound = 'compound'
 
-    vep_dir = os.path.join(parent_dir, vep)
-    plugins_dir = os.path.join(vep_dir, plugins)
-    homo_sapiens_dir = os.path.join(vep_dir, homo_sapiens)
-    cadd_dir = os.path.join(plugins_dir, cadd)
-    gnomad_dir = os.path.join(plugins_dir, gnomad)
-    clinvar_dir = os.path.join(plugins_dir, clinvar)
+ref = 'ref'
 
-    data_dir = os.path.join(parent_dir, data)
-    inp_dir = os.path.join(data_dir, inp)
-    annotated_vcf_dir = os.path.join(data_dir, annotated_vcf)
-    out_dir = os.path.join(data_dir, out)
-    out_compound_path = os.path.join(data_dir, compound)
+vep_dir = os.path.join(parent_dir, vep)
+plugins_dir = os.path.join(vep_dir, plugins)
+homo_sapiens_dir = os.path.join(vep_dir, homo_sapiens)
+cadd_dir = os.path.join(plugins_dir, cadd)
+gnomad_dir = os.path.join(plugins_dir, gnomad)
+clinvar_dir = os.path.join(plugins_dir, clinvar)
 
-    ref_dir = os.path.join(parent_dir, ref)
+data_dir = os.path.join(parent_dir, data)
+inp_dir = os.path.join(data_dir, inp)
+annotated_vcf_dir = os.path.join(data_dir, annotated_vcf)
+out_dir = os.path.join(data_dir, out)
+out_compound_path = os.path.join(data_dir, compound)
 
-    assembly = config['genome_assembly']
-    if assembly == 37:
-        from hg37 import hg
-    if assembly == 38:
-        from hg38 import hg
-    url_ref = hg['ref_genome_url']
-    ref_name_gz = hg['ref_name_gz']
-    url_gnomad_exomes_gz = hg['url_gnomad_exomes_gz']
-    url_gnomad_exomes_tbi = hg['url_gnomad_exomes_tbi']
-    url_gnomad_genomes_gz = hg['url_gnomad_genomes_gz']
-    url_gnomad_genomes_tbi = hg['url_gnomad_genomes_tbi']
-    url_cadd_whole_genome_gz = hg['url_cadd_whole_genome_gz']
-    url_cadd_whole_genome_tbi = hg['url_cadd_whole_genome_tbi']
-    url_clinvar_gz = hg['url_clinvar_gz']
-    url_clinvar_tbi = hg['url_clinvar_tbi']
-    url_homo_sapiens_gz = hg['url_homo_sapiens_gz']
-else:
-    print("Config file not found")
+ref_dir = os.path.join(parent_dir, ref)
+
+if assembly == 37:
+    from hg37 import hg
+if assembly == 38:
+    from hg38 import hg
+url_ref = hg['ref_genome_url']
+ref_name_gz = hg['ref_name_gz']
+url_gnomad_exomes_gz = hg['url_gnomad_exomes_gz']
+url_gnomad_exomes_tbi = hg['url_gnomad_exomes_tbi']
+url_gnomad_genomes_gz = hg['url_gnomad_genomes_gz']
+url_gnomad_genomes_tbi = hg['url_gnomad_genomes_tbi']
+url_cadd_whole_genome_gz = hg['url_cadd_whole_genome_gz']
+url_cadd_whole_genome_tbi = hg['url_cadd_whole_genome_tbi']
+url_clinvar_gz = hg['url_clinvar_gz']
+url_clinvar_tbi = hg['url_clinvar_tbi']
+url_homo_sapiens_gz = hg['url_homo_sapiens_gz']
+
 delimiter = '\t'
 
 # 0 Docker Run Images
@@ -117,7 +116,7 @@ def reference_genome_downloading():
         os.replace(f'{ref_dir}/{ref_name_fna}', f'{ref_dir}/{ref_name_fasta}')
 
         dict_name = ref_name_fasta.replace('fasta', 'dict')
-        cmd_ref_dict = f'sudo docker run --platform=linux/amd64 -v {parent_dir}:/gatk/main_dir -it broadinstitute/gatk:4.2.6.1 \
+        cmd_ref_dict = f'docker run --platform=linux/amd64 -v {parent_dir}:/gatk/main_dir -it broadinstitute/gatk:4.2.6.1 \
             ./gatk CreateSequenceDictionary \
             -R /gatk/main_dir/ref/{ref_name_fasta} \
             -O /gatk/main_dir/ref/{dict_name}'
@@ -126,7 +125,7 @@ def reference_genome_downloading():
         os.system(cmd_ref_dict)
         print(f'Reference genome dictionary creating finished')
 
-        cmd_ref_index = f'sudo docker run --platform=linux/amd64 -v {parent_dir}:/main_dir/ -it dukegcb/bwa-samtools:latest \
+        cmd_ref_index = f'docker run --platform=linux/amd64 -v {parent_dir}:/main_dir/ -it dukegcb/bwa-samtools:latest \
         samtools faidx /main_dir/ref/{ref_name_fasta}'
         print(f'Reference genome indexing...')
         print(cmd_ref_index)
@@ -211,13 +210,30 @@ def bed_to_vcf():
         elif file_extension.startswith('.bed'): # convert .bed to .vcf and save to working directory
             input_file = os.path.splitext(file_path)[0]
             vcf_file = os.path.join(inp_dir, os.path.basename(file_path).split('.')[0])
-            cmd = f"sudo plink \
+            cmd = f"plink \
                     --bfile {input_file} \
                     --recode vcf \
                     --out {vcf_file}"
             os.system(cmd)
 
 # 5. VEP Annotation
+
+import subprocess
+
+def check_docker_availability():
+    try:
+        subprocess.run(['docker', '--version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print("Docker is available and functional within the container.")
+    except subprocess.CalledProcessError:
+        print("Docker is not available or not functional within the container.")
+
+# Call the function to check Docker availability
+check_docker_availability()
+
+
+# Call the function to check Docker availability
+check_docker_availability()
+
 def vep_annotation():
     print('________________STEP VEP annotation______________________')
 
@@ -251,7 +267,7 @@ def vep_annotation():
     GRCh = 'GRCh'+str(assembly)
     print("VEP annotation (gnomAD, ClinVar, CADD databases)...")
     for vcf_file_name in inp_file_names_list:
-        cmd=f"sudo docker run --platform=linux/amd64 -t -i -v {parent_dir}:/opt/vep/.vep:Z ensemblorg/ensembl-vep ./vep --cache --offline --format vcf --vcf --database --force_overwrite \
+        cmd=f"docker run --platform=linux/amd64 -t -i -v {parent_dir}:/opt/vep/.vep:Z ensemblorg/ensembl-vep ./vep --cache --offline --format vcf --vcf --database --force_overwrite \
         --dir_cache /opt/vep/.vep/{vep}/ \
         --dir_plugins /opt/vep/.vep/{vep}/{plugins}/ \
         --input_file /opt/vep/.vep/{data}/{inp}/{vcf_file_name} \
