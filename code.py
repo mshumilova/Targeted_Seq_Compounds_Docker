@@ -7,8 +7,8 @@ import pandas as pd
 
 parent_dir = os.environ.get('PARENT_DIR')
 input_directory = os.environ.get('INPUT_DIR')
-selected_files = None #os.environ.get('SELECTED_FILES')
-assembly = 37 #os.environ.get("ASSEMBLY")
+selected_files = os.environ.get('SELECTED_FILES')
+assembly = os.environ.get("ASSEMBLY")
 
 if parent_dir is None or input_directory is None:
     raise ValueError("PARENT_DIR and INPUT_DIR environment variable must be set")
@@ -218,22 +218,6 @@ def bed_to_vcf():
 
 # 5. VEP Annotation
 
-import subprocess
-
-def check_docker_availability():
-    try:
-        subprocess.run(['docker', '--version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print("Docker is available and functional within the container.")
-    except subprocess.CalledProcessError:
-        print("Docker is not available or not functional within the container.")
-
-# Call the function to check Docker availability
-check_docker_availability()
-
-
-# Call the function to check Docker availability
-check_docker_availability()
-
 def vep_annotation():
     print('________________STEP VEP annotation______________________')
 
@@ -267,7 +251,9 @@ def vep_annotation():
     GRCh = 'GRCh'+str(assembly)
     print("VEP annotation (gnomAD, ClinVar, CADD databases)...")
     for vcf_file_name in inp_file_names_list:
-        cmd=f"docker run --platform=linux/amd64 -t -i -v {parent_dir}:/opt/vep/.vep:Z ensemblorg/ensembl-vep ./vep --cache --offline --format vcf --vcf --database --force_overwrite \
+        print(vcf_file_name)
+        cmd = f"docker run --platform=linux/amd64 \
+        -t -i -v {parent_dir}:/opt/vep/.vep:Z ensemblorg/ensembl-vep ./vep --cache --offline --format vcf --vcf --database --force_overwrite \
         --dir_cache /opt/vep/.vep/{vep}/ \
         --dir_plugins /opt/vep/.vep/{vep}/{plugins}/ \
         --input_file /opt/vep/.vep/{data}/{inp}/{vcf_file_name} \
